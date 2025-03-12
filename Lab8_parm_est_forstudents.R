@@ -16,7 +16,7 @@ setwd('YOUR DIRECTORY SAVING THE DATA')
 
 # alternative method using the file.choose() function
 # da.sars=read.csv(file.choose())
-da.sars=read.csv('SARS_serial_intervals.csv')
+da.sars=read.csv('~/Desktop/Modeling for ID/idm_week8/SARS_serial_intervals.csv')
 
 # Now take a look at the data
 ## each row is 1 case
@@ -85,6 +85,7 @@ legend('topright',cex=.9,seg.len = .8,
 
 
 
+
 ####################################################
 ## CODE YOURSELF: Fit to the log-normal distribution
 ####################################################
@@ -107,7 +108,7 @@ legend('topright',cex=.9,seg.len = .8,
 ## Part 2: Estimating R0 from the exponential growth phase of the epidemic
 ####################################################################################
 ## data: daily incidence during 1918 influenza pandemic in Germany (from 'R0' library)
-da.flu=read.csv('data_1918pandemic_Germany.csv')
+da.flu=read.csv('~/Desktop/Modeling for ID/idm_week8/data_1918pandemic_Germany.csv')
 da.flu$date = as.Date(da.flu$date)  # convert to date
 
 ## Always plot and check the data first
