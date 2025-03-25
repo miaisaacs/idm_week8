@@ -83,8 +83,33 @@ legend('topright',cex=.9,seg.len = .8,
 # Hint: Use the table from wikipedia to for the exponential distribution to get relevant parameters 
 # for computing the mean and SD of the serial interval: https://en.wikipedia.org/wiki/Exponential_distribution
 
+surv2=flexsurvreg(xsurv~1,dist='exponential')
 
+surv2; # check the model output
+surv2$res;
 
+surv2.mean=(1/surv2$res['rate','est']); # the mean for exponential
+surv2.sd=sqrt(1/((surv2$res['rate','est'])^2)) # sd for exponential
+print(paste(round(surv2.mean,1),'+/-',round(surv2.sd,1)))
+
+## Get the AIC:
+surv2.AIC=surv2$AIC
+
+## compute the model fit:
+tm=seq(min(da.sars[,'tm1']),max(da.sars[,'tm2']),by=.2) # more time points than the observed, so we can fill the gap
+# compute the number of cases per the survival model
+# dweibull is the density function for the Weibull distribution
+fit2=nrow(da.sars)*dexp(tm,rate=surv2$res['rate','est']);
+
+# Super-impose the model fit on the data for comparison
+par(mar=c(3,3,1,1),cex=1.2,mgp=c(1.5,.5,0))
+hist(da.sars[,1],breaks=20,col='grey',ylim=c(0,25), main='',
+     xlab='Serial Interval (days)',ylab='Number of cases')
+lines(tm,fit2,col='red',lwd=2)
+legend('topright',cex=.9,seg.len = .8,
+       legend=c('Observed','Fitted (Exponential)'),
+       lty=c(0,1),pch=c(22,NA),lwd=c(NA,2),pt.bg = c('grey',NA),
+       col=c('grey','red'),bty='n')
 
 ####################################################
 ## CODE YOURSELF: Fit to the log-normal distribution
@@ -95,13 +120,42 @@ legend('topright',cex=.9,seg.len = .8,
 # Hint: Use the table from wikipedia to for the log-normal distribution to get relevant parameters 
 # for computing the mean and SD of the serial interval: https://en.wikipedia.org/wiki/Log-normal_distribution
 
+surv3=flexsurvreg(xsurv~1,dist='lnorm')
 
+surv3; # check the model output
+surv3$res;
+
+surv3.mean=(exp((surv3$res['meanlog','est'])+((surv3$res['sdlog','est'])^2)/2)); # the mean for lognormal
+surv3.sd=sqrt(((exp((surv3$res['sdlog','est'])^2))-1)*exp(2*(surv3$res['meanlog','est'])+(surv3$res['sdlog','est'])^2)) # sd for lognormal
+print(paste(round(surv3.mean,1),'+/-',round(surv3.sd,1)))
+
+## Get the AIC:
+surv3.AIC=surv3$AIC
+
+## compute the model fit:
+tm=seq(min(da.sars[,'tm1']),max(da.sars[,'tm2']),by=.2) # more time points than the observed, so we can fill the gap
+# compute the number of cases per the survival model
+# dweibull is the density function for the Weibull distribution
+fit3=nrow(da.sars)*dlnorm(tm,meanlog=surv3$res['meanlog','est'],
+                        sdlog=surv3$res['sdlog','est']);
+
+# Super-impose the model fit on the data for comparison
+par(mar=c(3,3,1,1),cex=1.2,mgp=c(1.5,.5,0))
+hist(da.sars[,1],breaks=20,col='grey',ylim=c(0,25), main='',
+     xlab='Serial Interval (days)',ylab='Number of cases')
+lines(tm,fit3,col='red',lwd=2)
+legend('topright',cex=.9,seg.len = .8,
+       legend=c('Observed','Fitted (Log Normal)'),
+       lty=c(0,1),pch=c(22,NA),lwd=c(NA,2),pt.bg = c('grey',NA),
+       col=c('grey','red'),bty='n')
 
 
 
 # [Q3] Based on the AIC of the three models (Weibull, exponential, and log-normal), which fits the data best here? (0.5 pt)
 
-
+surv1.AIC
+surv2.AIC
+surv3.AIC
 
 
 ####################################################################################
@@ -121,8 +175,10 @@ plot(da.flu[,1],da.flu[,2], xlab='',ylab='Cases', pch = 20)
 ## Hint: cumpute the cumulative incidence using the cumsum function
 cumI=cumsum(da.flu[,2]); 
 
-# plot and see:
+# plot and see: log(cumI) vs. time
 
+par(mar=c(3,3,1,1),cex=1.2,mgp=c(1.5,.5,0))
+plot(da.flu$date,log(cumI), xlab='Date',ylab='Log(Cumulative Incidence)', pch = 20)
 
 
 # [LQ5] Assume a generation time of 3 days, estimate R0 from the exponential growth phase of the epidemic
@@ -132,7 +188,7 @@ cumI=cumsum(da.flu[,2]);
 # EXAMPLE: FOR THE FIRST 7 DAYS
 # Fit to the data during the first 7 days:
 D=3; # set the generation time to 3 days
-Ndays=7;  # ADJUST THE NUMBER OF DAYS INCLUDED IN THE FIT HERE
+Ndays=21;  # ADJUST THE NUMBER OF DAYS INCLUDED IN THE FIT HERE
 tm1=1:Ndays;
 fit1=lm(log(cumI[1:Ndays])~tm1)
 summary(fit1)
@@ -167,7 +223,6 @@ est.R0.ML(Germany.1918, # the data
           end=7, # ADJUST THE NUMBER OF DAYS TO INCLUDE IN THE MODEL HERE
           range=c(0.01,50) # the range of possible values to test
           )
-
 
 
 # [LQ8] Base on your estimated R0 over the first 7 days, 
